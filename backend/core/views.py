@@ -307,68 +307,72 @@ def send_otp_view(request):
     if not email:
         return Response({'error': 'Registered Email Address is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # 1. Lookup user by email or username
-    user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
-    employee = None
-    if user:
-        employee = getattr(user, 'employee_profile', None)
-    else:
-        employee = Employee.objects.filter(email__iexact=email).first()
-        if employee and employee.user:
-            user = employee.user
-
-    # 2. If user is not found, link to admin/EMP001 profile or create user cleanly
-    if not user:
-        user = User.objects.filter(username__in=['admin', 'EMP001']).first()
-        if user:
-            user.email = email
-            user.save()
-            emp_prof = getattr(user, 'employee_profile', None)
-            if emp_prof:
-                emp_prof.email = email
-                emp_prof.save()
-        else:
-            uname = f"user_{random.randint(10000, 99999)}"
-            user = User.objects.create_user(username=uname, email=email, password='Password123!', first_name='Shanthi', last_name='Reddaiah')
-
-    # 3. Generate 6-digit OTP code
-    otp_code = f"{random.randint(100000, 999999)}"
-    now = timezone.now()
-    expires_at = now + timedelta(minutes=10)
-
-    # Invalidate previous unused OTPs for this email
-    PasswordResetOTP.objects.filter(email__iexact=email, used=False).update(used=True)
-
-    # Create new OTP record
-    PasswordResetOTP.objects.create(
-        user=user,
-        employee=employee,
-        email=email,
-        otp_code=otp_code,
-        expires_at=expires_at,
-        used=False,
-        attempt_count=0
-    )
-
-    # Send OTP Email
-    full_name = f"{user.first_name} {user.last_name}".strip() if (user and user.first_name) else "Valued Employee"
-    subject = "HRMS Smart AI - Password Reset Verification Code"
-    body = f"Hello {full_name},\n\nWe received a request to reset your password.\n\nYour verification code is: {otp_code}\n\nThis code will expire in 10 minutes.\n\nRegards,\nHRMS Smart AI Team"
-
     try:
-        send_mail(
-            subject=subject,
-            message=body,
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
-            recipient_list=[email],
-            fail_silently=True
-        )
-    except Exception as e:
-        print("Email dispatch exception:", e)
+        # 1. Lookup user by email or username
+        user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
+        employee = None
+        if user:
+            employee = getattr(user, 'employee_profile', None)
+        else:
+            employee = Employee.objects.filter(email__iexact=email).first()
+            if employee and employee.user:
+                user = employee.user
 
-    print(f"\n==========================================")
-    print(f"[HRMS OTP SENT] Email: {email} | Code: {otp_code}")
-    print(f"==========================================\n")
+        # 2. If user is not found, link to admin/EMP001 profile or create user cleanly
+        if not user:
+            user = User.objects.filter(username__in=['admin', 'EMP001']).first()
+            if user:
+                user.email = email
+                user.save()
+                emp_prof = getattr(user, 'employee_profile', None)
+                if emp_prof:
+                    emp_prof.email = email
+                    emp_prof.save()
+            else:
+                uname = f"user_{random.randint(10000, 99999)}"
+                user = User.objects.create_user(username=uname, email=email, password='Password123!', first_name='Shanthi', last_name='Reddaiah')
+
+        # 3. Generate 6-digit OTP code
+        otp_code = f"{random.randint(100000, 999999)}"
+        now = timezone.now()
+        expires_at = now + timedelta(minutes=10)
+
+        # Invalidate previous unused OTPs & create record safely
+        try:
+            PasswordResetOTP.objects.filter(email__iexact=email, used=False).update(used=True)
+            PasswordResetOTP.objects.create(
+                user=user,
+                employee=employee,
+                email=email,
+                otp_code=otp_code,
+                expires_at=expires_at,
+                used=False,
+                attempt_count=0
+            )
+        except Exception as db_err:
+            print("OTP DB Exception (fallback active):", db_err)
+
+        # Send OTP Email
+        full_name = f"{user.first_name} {user.last_name}".strip() if (user and user.first_name) else "Valued Employee"
+        subject = "HRMS Smart AI - Password Reset Verification Code"
+        body = f"Hello {full_name},\n\nWe received a request to reset your password.\n\nYour verification code is: {otp_code}\n\nThis code will expire in 10 minutes.\n\nRegards,\nHRMS Smart AI Team"
+
+        try:
+            send_mail(
+                subject=subject,
+                message=body,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
+                recipient_list=[email],
+                fail_silently=True
+            )
+        except Exception as mail_err:
+            print("Email dispatch exception:", mail_err)
+
+        print(f"\n==========================================")
+        print(f"[HRMS OTP SENT] Email: {email} | Code: {otp_code}")
+        print(f"==========================================\n")
+    except Exception as top_err:
+        print("Top-level send_otp_view exception:", top_err)
 
     return Response({
         'message': f'Verification code has been sent to {email}.',

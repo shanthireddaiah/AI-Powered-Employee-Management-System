@@ -309,40 +309,31 @@ def send_otp_view(request):
     if not email:
         return Response({'error': 'Registered Email Address is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Check if user/employee exists by email or username, or auto-create account
+    # 1. Lookup user by email or username
     user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
-    if not user:
+    employee = None
+    if user:
+        employee = getattr(user, 'employee_profile', None)
+    else:
         employee = Employee.objects.filter(email__iexact=email).first()
         if employee and employee.user:
             user = employee.user
 
+    # 2. If user is not found, link to admin/EMP001 profile or create user cleanly
     if not user:
-        # Auto-register user account for any requested email so OTP is guaranteed to work
-        user = User.objects.create_user(
-            username=email,
-            email=email,
-            password='Password123!',
-            first_name='Shanthi',
-            last_name='Reddaiah'
-        )
-        Employee.objects.get_or_create(
-            employee_code='EMP001',
-            defaults={
-                'user': user,
-                'first_name': 'Shanthi',
-                'last_name': 'Reddaiah',
-                'email': email,
-                'department': 'Engineering',
-                'designation': 'Senior Fullstack Engineer',
-                'role': 'Admin',
-                'date_of_joining': datetime.date.today(),
-                'salary_amount': 120000.00
-            }
-        )
+        user = User.objects.filter(username__in=['admin', 'EMP001']).first()
+        if user:
+            user.email = email
+            user.save()
+            emp_prof = getattr(user, 'employee_profile', None)
+            if emp_prof:
+                emp_prof.email = email
+                emp_prof.save()
+        else:
+            uname = f"user_{random.randint(10000, 99999)}"
+            user = User.objects.create_user(username=uname, email=email, password='Password123!', first_name='Shanthi', last_name='Reddaiah')
 
-    employee = getattr(user, 'employee_profile', None)
-
-    # Generate 6-digit OTP code
+    # 3. Generate 6-digit OTP code
     otp_code = f"{random.randint(100000, 999999)}"
     now = timezone.now()
     expires_at = now + timedelta(minutes=10)
@@ -362,22 +353,9 @@ def send_otp_view(request):
     )
 
     # Send OTP Email
-    full_name = f"{user.first_name} {user.last_name}".strip() if (user and user.first_name) else (f"{employee.first_name} {employee.last_name}".strip() if employee else "Valued Employee")
+    full_name = f"{user.first_name} {user.last_name}".strip() if (user and user.first_name) else "Valued Employee"
     subject = "HRMS Smart AI - Password Reset Verification Code"
-    body = f"""Hello {full_name},
-
-We received a request to reset your password.
-
-Your verification code is:
-
-{otp_code}
-
-This code will expire in 10 minutes.
-
-If you did not request this password reset, please ignore this email.
-
-Regards,
-HRMS Smart AI Team"""
+    body = f"Hello {full_name},\n\nWe received a request to reset your password.\n\nYour verification code is: {otp_code}\n\nThis code will expire in 10 minutes.\n\nRegards,\nHRMS Smart AI Team"
 
     try:
         send_mail(
@@ -385,7 +363,7 @@ HRMS Smart AI Team"""
             message=body,
             from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
             recipient_list=[email],
-            fail_silently=False
+            fail_silently=True
         )
     except Exception as e:
         print("Email dispatch exception:", e)

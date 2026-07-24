@@ -91,9 +91,16 @@ def mark_all_notifications_read(request):
 
 
 class EmployeeViewSet(viewsets.ModelViewSet):
-
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+
+    def get_queryset(self):
+        if Employee.objects.count() == 0:
+            try:
+                run_auto_seed()
+            except Exception as e:
+                print("Auto seed exception:", e)
+        return Employee.objects.all()
 
     def perform_create(self, serializer):
         # Auto-create Django User credentials for newly added employees
@@ -545,11 +552,8 @@ def agentic_ai_query(request):
     res = ai_engine.process_query(prompt, request.user)
     return Response(res)
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def seed_database(request):
+def run_auto_seed():
     """Seed initial sample HRMS data for demo."""
-    # Helper to ensure User account exists for employee code
     def ensure_user_account(emp_code, email, first_name, last_name):
         u = User.objects.filter(username=emp_code).first()
         if not u:
@@ -562,22 +566,14 @@ def seed_database(request):
             u.save()
         return u
 
-    # Seed Employees with Realistic Industry Profiles
     u1 = ensure_user_account('EMP001', 'shanthi.reddaiah@company.com', 'Shanthi', 'Reddaiah')
     emp1, _ = Employee.objects.get_or_create(
         employee_code='EMP001',
         defaults={
-            'user': u1,
-            'first_name': 'Shanthi',
-            'last_name': 'Reddaiah',
-            'email': 'shanthi.reddaiah@company.com',
-            'country_code': '+91',
-            'phone': '9876543210',
-            'department': 'Engineering',
-            'designation': 'Senior Fullstack Engineer',
-            'role': 'Admin',
-            'date_of_joining': '2023-01-15',
-            'salary_amount': 120000.00
+            'user': u1, 'first_name': 'Shanthi', 'last_name': 'Reddaiah',
+            'email': 'shanthi.reddaiah@company.com', 'country_code': '+91', 'phone': '9876543210',
+            'department': 'Engineering', 'designation': 'Senior Fullstack Engineer', 'role': 'Admin',
+            'date_of_joining': '2023-01-15', 'salary_amount': 120000.00
         }
     )
     if emp1.first_name != 'Shanthi':
@@ -585,100 +581,51 @@ def seed_database(request):
         emp1.last_name = 'Reddaiah'
         emp1.user = u1
         emp1.save()
-    
+
     u2 = ensure_user_account('EMP002', 'collin.bruno@company.com', 'Collin', 'Bruno')
     emp2, _ = Employee.objects.get_or_create(
         employee_code='EMP002',
         defaults={
-            'user': u2,
-            'first_name': 'Collin',
-            'last_name': 'Bruno',
-            'email': 'collin.bruno@company.com',
-            'country_code': '+1',
-            'phone': '5550198822',
-            'department': 'Human Resources',
-            'designation': 'HR Manager',
-            'role': 'HR',
-            'date_of_joining': '2023-03-01',
-            'salary_amount': 95000.00
+            'user': u2, 'first_name': 'Collin', 'last_name': 'Bruno',
+            'email': 'collin.bruno@company.com', 'country_code': '+1', 'phone': '5550198822',
+            'department': 'Human Resources', 'designation': 'HR Manager', 'role': 'HR',
+            'date_of_joining': '2023-03-01', 'salary_amount': 95000.00
         }
     )
-    if emp2.first_name != 'Collin':
-        emp2.first_name = 'Collin'
-        emp2.last_name = 'Bruno'
-        emp2.user = u2
-        emp2.save()
 
     u3 = ensure_user_account('EMP003', 'elon.musk@company.com', 'Elon', 'Musk')
     emp3, _ = Employee.objects.get_or_create(
         employee_code='EMP003',
         defaults={
-            'user': u3,
-            'first_name': 'Elon',
-            'last_name': 'Musk',
-            'email': 'elon.musk@company.com',
-            'country_code': '+1',
-            'phone': '5550193344',
-            'department': 'Engineering',
-            'designation': 'VP Engineering',
-            'role': 'Manager',
-            'date_of_joining': '2023-06-10',
-            'salary_amount': 180000.00
+            'user': u3, 'first_name': 'Elon', 'last_name': 'Musk',
+            'email': 'elon.musk@company.com', 'country_code': '+1', 'phone': '5550193344',
+            'department': 'Engineering', 'designation': 'VP Engineering', 'role': 'Manager',
+            'date_of_joining': '2023-06-10', 'salary_amount': 180000.00
         }
     )
-    if emp3.first_name != 'Elon':
-        emp3.first_name = 'Elon'
-        emp3.last_name = 'Musk'
-        emp3.user = u3
-        emp3.save()
 
     u4 = ensure_user_account('EMP004', 'sundar.pichai@company.com', 'Sundar', 'Pichai')
     emp4, _ = Employee.objects.get_or_create(
         employee_code='EMP004',
         defaults={
-            'user': u4,
-            'first_name': 'Sundar',
-            'last_name': 'Pichai',
-            'email': 'sundar.pichai@company.com',
-            'country_code': '+91',
-            'phone': '9876543211',
-            'department': 'Product Design',
-            'designation': 'Product Lead',
-            'role': 'Employee',
-            'date_of_joining': '2023-08-01',
-            'salary_amount': 150000.00
+            'user': u4, 'first_name': 'Sundar', 'last_name': 'Pichai',
+            'email': 'sundar.pichai@company.com', 'country_code': '+91', 'phone': '9876543211',
+            'department': 'Product Design', 'designation': 'Product Lead', 'role': 'Employee',
+            'date_of_joining': '2023-08-01', 'salary_amount': 150000.00
         }
     )
-    if emp4.first_name != 'Sundar':
-        emp4.first_name = 'Sundar'
-        emp4.last_name = 'Pichai'
-        emp4.user = u4
-        emp4.save()
 
     u5 = ensure_user_account('EMP005', 'satya.nadella@company.com', 'Satya', 'Nadella')
     emp5, _ = Employee.objects.get_or_create(
         employee_code='EMP005',
         defaults={
-            'user': u5,
-            'first_name': 'Satya',
-            'last_name': 'Nadella',
-            'email': 'satya.nadella@company.com',
-            'country_code': '+91',
-            'phone': '9876543212',
-            'department': 'Engineering',
-            'designation': 'Cloud Architect',
-            'role': 'Employee',
-            'date_of_joining': '2023-09-15',
-            'salary_amount': 160000.00
+            'user': u5, 'first_name': 'Satya', 'last_name': 'Nadella',
+            'email': 'satya.nadella@company.com', 'country_code': '+91', 'phone': '9876543212',
+            'department': 'Engineering', 'designation': 'Cloud Architect', 'role': 'Employee',
+            'date_of_joining': '2023-09-15', 'salary_amount': 160000.00
         }
     )
-    if emp5.first_name != 'Satya':
-        emp5.first_name = 'Satya'
-        emp5.last_name = 'Nadella'
-        emp5.user = u5
-        emp5.save()
 
-    # Seed Attendance
     today = datetime.date.today()
     Attendance.objects.get_or_create(
         employee=emp1, date=today,
@@ -693,21 +640,17 @@ def seed_database(request):
         defaults={'check_in': '09:30:00', 'check_out': '17:30:00', 'work_hours': 8.0, 'status': 'Late'}
     )
 
-    # Seed Leaves
     Leave.objects.get_or_create(
         employee=emp3, start_date=today + datetime.timedelta(days=5),
         end_date=today + datetime.timedelta(days=7),
         defaults={'leave_type': 'Earned Leave (EL)', 'reason': 'Family vacation and personal leave', 'status': 'Pending'}
     )
 
-    # Seed Projects
     proj1, _ = Project.objects.get_or_create(
         name='HRMS Agentic AI Platform',
         defaults={
             'description': 'Building next-gen AI powered Employee Management System with Django, Scikit-Learn and React',
-            'client_name': 'Enterprise Global Tech',
-            'start_date': '2026-01-01',
-            'status': 'In-Progress'
+            'client_name': 'Enterprise Global Tech', 'start_date': '2026-01-01', 'status': 'In-Progress'
         }
     )
 
@@ -716,7 +659,6 @@ def seed_database(request):
         defaults={'role_in_project': 'Lead Fullstack Architect'}
     )
 
-    # Seed Salaries for all employees
     Salary.objects.get_or_create(
         employee=emp1, month='July', year=2026,
         defaults={'base_salary': 120000.00, 'bonuses': 10000.00, 'deductions': 5000.00, 'net_salary': 125000.00, 'payment_status': 'Paid'}
@@ -730,7 +672,6 @@ def seed_database(request):
         defaults={'base_salary': 180000.00, 'bonuses': 1500.00, 'deductions': 8000.00, 'net_salary': 187000.00, 'payment_status': 'Paid'}
     )
 
-    # Seed Performance Reviews
     Performance.objects.get_or_create(
         employee=emp1, review_period='Q2 2026',
         defaults={'rating': 5, 'kpi_score': 98.0, 'feedback': 'Exceeded all quarter targets and led Agentic AI implementation.', 'predicted_score': 4.9}
@@ -740,59 +681,21 @@ def seed_database(request):
         defaults={'rating': 4, 'kpi_score': 90.0, 'feedback': 'Outstanding recruitment metrics and employee engagement.', 'predicted_score': 4.5}
     )
 
-    # Clean up old unassigned generic notifications
     Notification.objects.filter(user__isnull=True, employee__isnull=True).delete()
-
-    # Seed Realistic Role-Based Persistent Notifications
     Notification.objects.get_or_create(
-        title='Earned Leave Request',
-        user=u2,
-        defaults={
-            'employee': emp2,
-            'recipient_role': 'HR',
-            'message': 'Elon Musk applied for Earned Leave (EL) starting next week.',
-            'notification_type': 'leave',
-            'link': '/leaves',
-            'is_read': False
-        }
+        title='Earned Leave Request', user=u2,
+        defaults={'employee': emp2, 'recipient_role': 'HR', 'message': 'Elon Musk applied for Earned Leave (EL) starting next week.', 'notification_type': 'leave', 'link': '/leaves', 'is_read': False}
     )
     Notification.objects.get_or_create(
-        title='Clock In Alert',
-        user=u2,
-        defaults={
-            'employee': emp2,
-            'recipient_role': 'HR',
-            'message': 'Collin Bruno checked in at 09:15 AM today.',
-            'notification_type': 'attendance',
-            'link': '/attendance',
-            'is_read': False
-        }
-    )
-    Notification.objects.get_or_create(
-        title='New Project Assignment',
-        user=u4,
-        defaults={
-            'employee': emp4,
-            'recipient_role': 'Employee',
-            'message': 'You have been assigned to Project Phoenix.',
-            'notification_type': 'project',
-            'link': '/projects',
-            'is_read': False
-        }
-    )
-    Notification.objects.get_or_create(
-        title='AI Performance Rating Synced',
-        user=u1,
-        defaults={
-            'employee': emp1,
-            'recipient_role': 'Employee',
-            'message': 'Your Q2 Performance Review has been completed with rating 4.9/5.0.',
-            'notification_type': 'performance',
-            'link': '/performance',
-            'is_read': False
-        }
+        title='Clock In Alert', user=u2,
+        defaults={'employee': emp2, 'recipient_role': 'HR', 'message': 'Collin Bruno checked in at 09:15 AM today.', 'notification_type': 'attendance', 'link': '/attendance', 'is_read': False}
     )
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def seed_database(request):
+    """Seed initial sample HRMS data for demo."""
+    run_auto_seed()
     return Response({'message': 'Database seeded successfully with realistic HRMS employee data and notifications!'})
 
 

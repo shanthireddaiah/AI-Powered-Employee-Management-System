@@ -24,9 +24,6 @@ router.register(r'ai-logs', AILogViewSet)
 router.register(r'notifications', NotificationViewSet)
 
 urlpatterns = [
-    path('notifications/mark-all-read/', mark_all_notifications_read, name='mark_all_notifications_read'),
-    path('notifications/<int:pk>/mark-read/', mark_notification_read, name='mark_notification_read'),
-    path('', include(router.urls)),
     path('auth/login/', login_view, name='login'),
     path('auth/signup/', signup_view, name='signup'),
     path('auth/forgot-password/', forgot_password_view, name='forgot_password'),
@@ -35,6 +32,9 @@ urlpatterns = [
     path('auth/reset-password-otp/', reset_password_otp_view, name='reset_password_otp'),
     path('auth/one-time-login/', one_time_login_view, name='one_time_login'),
     path('auth/change-password/', change_password_view, name='change_password'),
+    path('notifications/mark-all-read/', mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('notifications/<int:pk>/mark-read/', mark_notification_read, name='mark_notification_read'),
+    path('', include(router.urls)),
     path('analytics/dashboard/', analytics_dashboard, name='analytics_dashboard'),
 
 

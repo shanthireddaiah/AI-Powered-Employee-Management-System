@@ -53,6 +53,8 @@ def fetch_online_knowledge(query: str) -> str:
     """Fetches real-time web knowledge summary for any entity, concept, acronym, or term on Earth."""
     normalized = normalize_user_query(query)
     clean_q = normalized.lower().replace("what is", "").replace("who is", "").replace("tell me about", "").replace("explain", "").replace("definition of", "").replace("?", "").strip()
+    if clean_q.startswith("the "):
+        clean_q = clean_q[4:].strip()
     
     # Direct HRMS System & Team Knowledge
     if "reddaiah" in normalized.lower() or "shanthi" in normalized.lower():
@@ -64,6 +66,15 @@ def fetch_online_knowledge(query: str) -> str:
     if any(k in normalized.lower() for k in ["president of india"]):
         return "🇮🇳 **President of India**: Droupadi Murmu is an Indian politician serving as the 15th and current president of India since 2022."
 
+    if "dhoni" in normalized.lower():
+        return "🏏 **MS Dhoni (Mahendra Singh Dhoni)**: Former captain of the Indian national cricket team, legendary wicket-keeper batsman, and 2011 ICC World Cup winning captain!"
+
+    if "virat" in normalized.lower() or "kohli" in normalized.lower():
+        return "🏏 **Virat Kohli**: International Indian cricketer, former captain of Team India, and one of the highest run-scoring batsmen in cricket history."
+
+    if "sachin" in normalized.lower() or "tendulkar" in normalized.lower():
+        return "🏏 **Sachin Tendulkar**: Legendary Indian cricketer known as the 'Master Blaster', holding the record for the highest run-scorer in international cricket."
+
     if not clean_q:
         clean_q = query.strip()
     
@@ -72,7 +83,7 @@ def fetch_online_knowledge(query: str) -> str:
 
     # 1. DuckDuckGo Instant Answer API
     try:
-        ddg_api_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(query)}&format=json&no_html=1&skip_disambig=1"
+        ddg_api_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(clean_q)}&format=json&no_html=1&skip_disambig=1"
         res_ddg_api = requests.get(ddg_api_url, headers=headers, timeout=4)
         if res_ddg_api.status_code == 200:
             data = res_ddg_api.json()
@@ -98,13 +109,25 @@ def fetch_online_knowledge(query: str) -> str:
                 title = page_info.get('title', clean_q.title())
                 extract = page_info.get('extract', '').strip()
                 if extract and len(extract) > 30:
-                    # Limit extract to first paragraph or 400 chars
                     first_para = extract.split('\n')[0]
                     if len(first_para) < 50 and len(extract) > 50:
                         first_para = extract[:450] + "..."
                     return f"🌐 **AI Knowledge Search ({title})**:\n{first_para}"
     except Exception as e:
         print("Wikipedia Query Search exception:", e)
+
+    # 3. Wikipedia OpenSearch Direct Fallback
+    try:
+        opensearch_url = f"https://en.wikipedia.org/w/api.php?action=opensearch&search={urllib.parse.quote(clean_q)}&limit=1&namespace=0&format=json"
+        res_open = requests.get(opensearch_url, headers=headers, timeout=3)
+        if res_open.status_code == 200:
+            odata = res_open.json()
+            if len(odata) >= 4 and odata[1] and odata[2] and odata[2][0]:
+                otitle = odata[1][0]
+                osummary = odata[2][0]
+                return f"🌐 **AI Knowledge Search ({otitle})**:\n{osummary}"
+    except Exception as e:
+        print("Wikipedia OpenSearch exception:", e)
 
     # 3. DuckDuckGo HTML Search Fallback
     try:

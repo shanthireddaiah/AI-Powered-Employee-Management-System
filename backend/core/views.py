@@ -307,6 +307,8 @@ def send_otp_view(request):
     if not email:
         return Response({'error': 'Registered Email Address is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    sender_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'hrms.portal.official@gmail.com') or 'hrms.portal.official@gmail.com'
+
     try:
         # 1. Lookup user by email or username
         user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
@@ -352,7 +354,7 @@ def send_otp_view(request):
         except Exception as db_err:
             print("OTP DB Exception (fallback active):", db_err)
 
-        # Send OTP Email
+        # Send OTP Email safely
         full_name = f"{user.first_name} {user.last_name}".strip() if (user and user.first_name) else "Valued Employee"
         subject = "HRMS Smart AI - Password Reset Verification Code"
         body = f"Hello {full_name},\n\nWe received a request to reset your password.\n\nYour verification code is: {otp_code}\n\nThis code will expire in 10 minutes.\n\nRegards,\nHRMS Smart AI Team"
@@ -361,7 +363,7 @@ def send_otp_view(request):
             send_mail(
                 subject=subject,
                 message=body,
-                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
+                from_email=sender_email,
                 recipient_list=[email],
                 fail_silently=True
             )

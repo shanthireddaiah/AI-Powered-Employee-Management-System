@@ -68,40 +68,46 @@ def fetch_online_knowledge(query: str) -> str:
         clean_q = query.strip()
     
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    import urllib.parse, re, html
 
-    # 1. Wikipedia OpenSearch API (Handles typos & partial title matches)
+    # 1. DuckDuckGo Instant Answer API
     try:
-        import urllib.parse
-        search_url = f"https://en.wikipedia.org/w/api.php?action=opensearch&search={urllib.parse.quote(clean_q)}&limit=1&namespace=0&format=json"
-        res_search = requests.get(search_url, headers=headers, timeout=3)
-        if res_search.status_code == 200:
-            sdata = res_search.json()
-            if len(sdata) >= 4 and sdata[1] and sdata[2]:
-                title = sdata[1][0]
-                summary = sdata[2][0]
-                if summary and len(summary) > 20:
-                    return f"🌐 **AI Knowledge Search ({title})**:\n{summary}"
+        ddg_api_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(query)}&format=json&no_html=1&skip_disambig=1"
+        res_ddg_api = requests.get(ddg_api_url, headers=headers, timeout=4)
+        if res_ddg_api.status_code == 200:
+            data = res_ddg_api.json()
+            abstract = data.get('AbstractText', '').strip()
+            heading = data.get('Heading', query.title())
+            if abstract and len(abstract) > 25:
+                return f"🤖 **AI Knowledge Search ({heading})**:\n{abstract}"
+            # Check Definition or Answer fields
+            definition = data.get('Definition', '').strip() or data.get('Answer', '').strip()
+            if definition and len(definition) > 15:
+                return f"🤖 **AI Knowledge Search ({heading})**:\n{definition}"
     except Exception as e:
-        print("Wikipedia OpenSearch exception:", e)
+        print("DuckDuckGo Instant Answer API exception:", e)
 
-    # 2. Wikipedia Summary Search Direct
+    # 2. Wikipedia Query Search API (Full Extract)
     try:
-        import urllib.parse
-        encoded_title = urllib.parse.quote(clean_q.title().replace(" ", "_"))
-        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{encoded_title}"
-        res = requests.get(url, headers=headers, timeout=3)
-        if res.status_code == 200:
-            data = res.json()
-            extract = data.get('extract')
-            if extract and len(extract) > 20:
-                title = data.get('title', clean_q.title())
-                return f"🌐 **AI Real-Time Knowledge ({title})**:\n{extract}"
+        wiki_query_url = f"https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch={urllib.parse.quote(clean_q)}&gsrlimit=1&prop=extracts&exintro=1&explaintext=1&format=json"
+        res_wiki = requests.get(wiki_query_url, headers=headers, timeout=4)
+        if res_wiki.status_code == 200:
+            wdata = res_wiki.json()
+            pages = wdata.get('query', {}).get('pages', {})
+            for pid, page_info in pages.items():
+                title = page_info.get('title', clean_q.title())
+                extract = page_info.get('extract', '').strip()
+                if extract and len(extract) > 30:
+                    # Limit extract to first paragraph or 400 chars
+                    first_para = extract.split('\n')[0]
+                    if len(first_para) < 50 and len(extract) > 50:
+                        first_para = extract[:450] + "..."
+                    return f"🌐 **AI Knowledge Search ({title})**:\n{first_para}"
     except Exception as e:
-        print("Wikipedia search exception:", e)
+        print("Wikipedia Query Search exception:", e)
 
-    # 3. DuckDuckGo Real-Time Web Intelligence Extraction
+    # 3. DuckDuckGo HTML Search Fallback
     try:
-        import re, html
         url_ddg = 'https://html.duckduckgo.com/html/'
         res_ddg = requests.post(url_ddg, data={'q': query}, headers=headers, timeout=4)
         snippets = re.findall(r'class="result__snippet[^"]*"[^>]*>(.*?)</a>', res_ddg.text, re.DOTALL)
@@ -118,7 +124,7 @@ def fetch_online_knowledge(query: str) -> str:
         print("DuckDuckGo web search exception:", e)
         
     clean_topic = clean_q.title()
-    return f"🤖 **Gemini AI**: Regarding **{clean_topic}**, I am here to assist you with general knowledge queries, company policies, attendance tracking, leave applications, payslips, or project details."
+    return f"🤖 **Gemini AI**: Regarding **{clean_topic}**, I can assist with general knowledge queries, company policies, attendance tracking, leave applications, payslips, or project details!"
 
 def call_gemini_ai(query: str, user_name: str = "") -> str:
     """Queries configured Google Gemini API using GEMINI_API_KEY env var with complete auth diagnostics and clean AI fallback."""

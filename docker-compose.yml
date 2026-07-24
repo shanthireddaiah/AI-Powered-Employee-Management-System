@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: hrms_agentic_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=hrms_backend.settings
+      - PYTHONUNBUFFERED=1
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: hrms_agentic_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: always

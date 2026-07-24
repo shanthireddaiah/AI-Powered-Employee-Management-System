@@ -1,0 +1,27 @@
+# Python / Virtualenv
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+ENV/
+*.sqlite3
+*.log
+
+# Environment variables
+.env
+*.env
+
+# Node / React
+node_modules/
+dist/
+build/
+.DS_Store
+*.timestamp-*.mjs
+
+# IDE / Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo

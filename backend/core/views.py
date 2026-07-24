@@ -27,8 +27,6 @@ from .serializers import (
     ProjectSerializer, EmployeeProjectSerializer, SalarySerializer,
     PerformanceSerializer, AILogSerializer, UserSerializer, NotificationSerializer
 )
-from .analytics import get_overall_dashboard_analytics, get_attendance_analytics, get_payroll_analytics
-from .ml_model import predict_employee_performance, predict_employee_attrition
 from .agentic_ai import ai_engine
 
 
@@ -509,8 +507,8 @@ def one_time_login_view(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def analytics_dashboard(request):
-
     """Analytics endpoint returning Pandas/NumPy aggregations."""
+    from .analytics import get_overall_dashboard_analytics
     data = get_overall_dashboard_analytics()
     return Response(data)
 
@@ -518,6 +516,7 @@ def analytics_dashboard(request):
 @permission_classes([AllowAny])
 def predict_performance_api(request):
     """Scikit-Learn ML Performance Prediction endpoint."""
+    from .ml_model import predict_employee_performance
     kpi = float(request.data.get('kpi_score', 85))
     attendance_pct = float(request.data.get('attendance_pct', 95))
     avg_hours = float(request.data.get('avg_hours', 8.0))
@@ -534,6 +533,7 @@ def predict_performance_api(request):
 @permission_classes([AllowAny])
 def predict_attrition_api(request):
     """Scikit-Learn ML Attrition Risk Prediction endpoint."""
+    from .ml_model import predict_employee_attrition
     salary = float(request.data.get('salary', 50000))
     tenure = float(request.data.get('tenure_years', 2.0))
     rating = float(request.data.get('rating', 4.0))

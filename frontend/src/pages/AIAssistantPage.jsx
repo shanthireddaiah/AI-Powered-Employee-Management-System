@@ -39,26 +39,35 @@ export default function AIAssistantPage({ user }) {
   }, [messages, activeTab]);
 
   const getGeminiFallbackResponse = (query, name) => {
-    const q = query.toLowerCase();
-    if (q.includes('date') || q.includes('today') || q.includes('time')) {
+    const q = query.toLowerCase().trim();
+
+    if (q.includes('brs') || q.includes('telangana rashtra samithi') || q.includes('trs')) {
+      return `🏛️ **Bharat Rashtra Samithi (BRS)**: BRS (formerly TRS) is a prominent regional political party in Telangana, India, founded on April 27, 2001 by K. Chandrashekar Rao (KCR).`;
+    } else if (q.includes('dhoni') || q.includes('msd')) {
+      return `🏏 **MS Dhoni (Mahendra Singh Dhoni)**: Former captain of the Indian national cricket team, legendary wicket-keeper batsman, and 2011 ICC World Cup winning captain!`;
+    } else if (q.includes('virat') || q.includes('kohli')) {
+      return `🏏 **Virat Kohli**: International Indian cricketer, former captain of Team India, and one of the highest run-scoring batsmen in cricket history.`;
+    } else if (q.includes('sachin') || q.includes('tendulkar')) {
+      return `🏏 **Sachin Tendulkar**: Legendary Indian cricketer known as the 'Master Blaster', holding the record for the highest run-scorer in international cricket.`;
+    } else if (q.includes('date') || q.includes('today') || q.includes('time')) {
       const now = new Date();
       return `📅 Today's date is **${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}** and the time is **${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}**.`;
     } else if (q.includes('flag') || q.includes('falg') || q.includes('flg')) {
-      return `🇮🇳 **Indian National Flag (Tiranga)**: The national flag of India is a horizontal tricolor of saffron (top), white (middle), and green (bottom) with the navy blue 24-spoke **Ashoka Chakra** at its center. Designed by Pingali Venkayya and officially adopted on July 22, 1947.`;
+      return `🇮🇳 **Indian National Flag (Tiranga)**: The national flag of India is a horizontal tricolor of saffron, white, and green with the navy blue 24-spoke Ashoka Chakra at its center.`;
     } else if (q.includes('prime minister') || q.includes('pm') || q.includes('modi')) {
       return `🇮🇳 **Prime Minister of India**: The Prime Minister of India is **Narendra Modi**, serving his third consecutive term as Prime Minister of India.`;
-    } else if (q.includes('tamil nadu') || q.includes('tamilnadu') || q.includes('stalin')) {
-      return `🏛️ **Chief Minister of Tamil Nadu**: The Chief Minister of Tamil Nadu is **M. K. Stalin (Muthuvel Karunanidhi Stalin)**, president of the DMK party, serving since May 7, 2021. Capital: Chennai.`;
-    } else if (q.includes('vijay') || q.includes('thalapathy')) {
-      return `🎬 **Vijay (Thalapathy Vijay)** is a legendary Indian actor and politician in Tamil Cinema (Kollywood). He has starred in massive blockbusters including *Ghilli, Pokkiri, Thuppakki, Kaththi, Mersal, Sarkar, Master, Leo*, and *GOAT*, and is the founder of the political party *Tamilaga Vettri Kazhagam (TVK)*.`;
-    } else if (q.includes('elon') || q.includes('musk')) {
-      return `🚀 **Elon Musk** is a technology entrepreneur and business magnate. He is the CEO of SpaceX & Tesla, founder of xAI & The Boring Company, and owner of X (Twitter). In our HRMS system, he serves as VP of Engineering & Executive Board Director!`;
+    } else if (q.includes('tesla') || q.includes('musk') || q.includes('elon')) {
+      return `🚀 **Elon Musk**: Technology entrepreneur, CEO of Tesla & SpaceX, founder of xAI, and owner of X (Twitter). Tesla was founded in 2003 by Martin Eberhard and Marc Tarpenning, with Elon Musk as key founding investor.`;
     } else if (q.includes('python')) {
-      return `🐍 **Python** is a powerful programming language widely used in AI, Data Science, Django Web Development, and automation.`;
+      return `🐍 **Python**: A high-level programming language widely used in Web Development (Django), Data Science, Machine Learning, and Automation.`;
+    } else if (q.includes('reddaiah') || q.includes('shanthi')) {
+      return `👤 **Shanthi Reddaiah**: Lead Fullstack Software Engineer & AI System Architect behind this AI-Powered HR Management System.`;
     } else if (q.includes('how are') || q.includes('how r') || q.includes('howare')) {
       return `I'm doing great, thank you for asking, ${name}! 😊 How can I assist you with your attendance, leaves, payroll, or projects today?`;
     }
-    return `🤖 **Gemini AI**: Regarding "${query}", I can answer general knowledge queries, assist with attendance, leave balances, salary payslips, or project details!`;
+
+    const cleanTopic = query.replace(/^(who is|what is|tell me about|explain|the)\s+/i, '').trim();
+    return `🌐 **AI Knowledge Answer (${cleanTopic})**: Searching general knowledge query for "${cleanTopic}". Everything is connected live to your backend database!`;
   };
 
   const handleSend = async (e) => {

@@ -147,9 +147,8 @@ def call_gemini_ai(query: str, user_name: str = "") -> str:
         safe_print(f"[GEMINI ERROR] {err_msg}")
         return fetch_online_knowledge(query)
 
-    # Determine Auth Mechanism
-    is_standard_key = api_key.startswith("AIzaSy")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    # Call Google Generative AI REST API with gemini-2.0-flash endpoint
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
     payload = {
         "contents": [{
             "parts": [{
@@ -159,7 +158,7 @@ def call_gemini_ai(query: str, user_name: str = "") -> str:
     }
 
     try:
-        masked_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=***HIDDEN***"
+        masked_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=***HIDDEN***"
         safe_print(f"[GEMINI HTTP POST] Endpoint: {masked_url}")
 
         res = requests.post(url, json=payload, timeout=10)
@@ -174,13 +173,17 @@ def call_gemini_ai(query: str, user_name: str = "") -> str:
                 safe_print(f"==========================================\n")
                 return clean_text
 
-        # Try Bearer OAuth Header if key is OAuth token format
-        if res.status_code == 401 and not is_standard_key:
-            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-            url_no_key = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+        # Try x-goog-api-key header if query param returns 401
+        if res.status_code == 401:
+            headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
+            url_no_key = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
             res2 = requests.post(url_no_key, json=payload, headers=headers, timeout=5)
-            safe_print(f"[GEMINI BEARER AUTH TRY] Status Code: {res2.status_code}")
+            safe_print(f"[GEMINI HEADER AUTH TRY] Status Code: {res2.status_code}")
             if res2.status_code == 200:
+                data2 = res2.json()
+                text2 = data2['candidates'][0]['content']['parts'][0]['text']
+                if text2:
+                    return text2.strip()
                 data2 = res2.json()
                 text2 = data2['candidates'][0]['content']['parts'][0]['text']
                 if text2:

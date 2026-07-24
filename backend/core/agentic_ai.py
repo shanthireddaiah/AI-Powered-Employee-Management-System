@@ -116,16 +116,6 @@ def fetch_online_knowledge(query: str) -> str:
 
     clean_topic = clean_q.title()
     return f"🤖 **Gemini AI**: Regarding **{clean_topic}**, I can assist with general knowledge queries, company policies, attendance tracking, leave applications, payslips, or project details!"
-            if text and len(text) > 15:
-                cleaned.append(text)
-        if cleaned:
-            summary = "\n".join([f"• {c}" for c in cleaned[:3]])
-            return f"🌐 **AI Real-Time Web Search ({query.title()})**:\n{summary}"
-    except Exception as e:
-        print("DuckDuckGo web search exception:", e)
-        
-    clean_topic = clean_q.title()
-    return f"🤖 **Gemini AI**: Regarding **{clean_topic}**, I can assist with general knowledge queries, company policies, attendance tracking, leave applications, payslips, or project details!"
 
 def call_gemini_ai(query: str, user_name: str = "") -> str:
     """Queries configured Google Gemini API using GEMINI_API_KEY env var with complete auth diagnostics and clean AI fallback."""

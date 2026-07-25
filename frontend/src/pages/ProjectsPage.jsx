@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FolderGit2, Plus, Users, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([]);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Users, Clock, Calendar, Briefcase, DollarSign, Award, Bot, RefreshCw, CheckCircle2, TrendingUp, BarChart3 } from 'lucide-react';
+import { Users, Clock, Calendar, DollarSign, Award, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export default function DashboardPage({ user }) {
   const [stats, setStats] = useState(null);

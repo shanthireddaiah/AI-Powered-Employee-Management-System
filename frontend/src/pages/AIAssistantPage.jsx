@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Bot, Send, User, Sparkles, ShieldCheck, History, MessageSquare, Terminal } from 'lucide-react';
+import { Send, User, Sparkles, History, MessageSquare, Terminal } from 'lucide-react';
 
 export default function AIAssistantPage({ user }) {
   const userName = user ? `${user.first_name} ${user.last_name}` : 'Shanthi Reddaiah';

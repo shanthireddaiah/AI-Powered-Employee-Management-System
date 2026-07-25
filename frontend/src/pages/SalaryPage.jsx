@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { DollarSign, FileText, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 export default function SalaryPage() {
   const [salaries, setSalaries] = useState([]);

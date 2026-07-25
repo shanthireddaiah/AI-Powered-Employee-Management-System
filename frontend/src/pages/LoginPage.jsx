@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Shield, Lock, User, LogIn, AlertCircle, CheckCircle, Mail, UserPlus, KeyRound, ArrowLeft, ArrowRight, Check, RefreshCw, Sparkles } from 'lucide-react';
+import { Shield, Lock, User, LogIn, AlertCircle, CheckCircle, Mail, UserPlus, KeyRound, ArrowRight, RefreshCw } from 'lucide-react';
 
 export default function LoginPage({ onLoginSuccess }) {
   const [mode, setMode] = useState('login'); // 'login', 'signup', 'forgot'
@@ -168,11 +168,14 @@ export default function LoginPage({ onLoginSuccess }) {
 
     try {
       const res = await axios.post('/api/auth/send-otp/', { email: forgotEmail.trim() });
+      if (res.data.dev_otp) {
+        setDevOtp(res.data.dev_otp);
+      }
       setSuccessMessage(res.data.message || `Verification code has been sent to ${forgotEmail.trim()}.`);
       setForgotStep(2);
     } catch (err) {
       console.error("Send OTP failed:", err);
-      setError(parseErrorMessage(err, 'This email address is not registered.'));
+      setError(parseErrorMessage(err, 'Failed to send verification code. Please check your email address and try again.'));
     } finally {
       setLoading(false);
     }
@@ -213,6 +216,9 @@ export default function LoginPage({ onLoginSuccess }) {
 
     try {
       const res = await axios.post('/api/auth/send-otp/', { email: forgotEmail.trim() });
+      if (res.data.dev_otp) {
+        setDevOtp(res.data.dev_otp);
+      }
       setSuccessMessage(`New verification code sent to ${forgotEmail.trim()}.`);
     } catch (err) {
       setError(parseErrorMessage(err, 'Failed to resend verification code. Please try again.'));
@@ -768,6 +774,38 @@ export default function LoginPage({ onLoginSuccess }) {
                       }}
                     />
                   </div>
+                  {devOtp && (
+                    <div style={{
+                      marginTop: '0.5rem',
+                      padding: '0.4rem 0.75rem',
+                      background: '#EFF6FF',
+                      border: '1px dashed #93C5FD',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontSize: '0.78rem',
+                      color: '#1E40AF'
+                    }}>
+                      <span>Demo Verification Code: <strong>{devOtp}</strong></span>
+                      <button
+                        type="button"
+                        onClick={() => setOtpCode(devOtp)}
+                        style={{
+                          background: '#2563EB',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: '4px',
+                          padding: '0.2rem 0.5rem',
+                          fontSize: '0.72rem',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Auto-Fill Code
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>

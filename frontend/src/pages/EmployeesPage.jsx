@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Plus, Search, UserCheck, Trash2, X, Download } from 'lucide-react';
+import { Plus, Search, Trash2, X, Download } from 'lucide-react';
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState([]);

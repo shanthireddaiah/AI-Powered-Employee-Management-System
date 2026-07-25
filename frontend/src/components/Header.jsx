@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Shield, LogOut, Bell, X, CheckCircle, AlertCircle, Info, ExternalLink } from 'lucide-react';
+import { LogOut, Bell, X, ExternalLink } from 'lucide-react';
 
 
 export default function Header({ user, onLogout, onNavigate }) {

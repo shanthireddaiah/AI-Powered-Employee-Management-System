@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Calendar, Plus, Check, X } from 'lucide-react';
+import { Plus, Check, X } from 'lucide-react';
 
 export default function LeavesPage({ user }) {
   const [leaves, setLeaves] = useState([]);

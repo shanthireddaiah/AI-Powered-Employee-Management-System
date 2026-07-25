@@ -20,8 +20,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend source code
 COPY . /app/
 
+# Collect static files
+RUN python manage.py collectstatic --noinput || true
+
 # Expose Django port
 EXPOSE 8000
 
-# Default launch command
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Launch command using Gunicorn for production
+CMD ["gunicorn", "hrms_backend.wsgi:application", "--bind", "0.0.0.0:8000"]
+

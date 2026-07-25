@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Award, Cpu, TrendingUp, AlertTriangle, ShieldAlert, Sparkles, UserCheck, Download } from 'lucide-react';
+import { Cpu, ShieldAlert, Sparkles, Download } from 'lucide-react';
 
 export default function PerformancePage() {
   const [reviews, setReviews] = useState([]);
